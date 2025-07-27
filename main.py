@@ -249,7 +249,7 @@ def launch_web_ui():
         
         if web_ui_launcher.exists():
             print("✅ Starting web interface...")
-            print("📊 Dashboard will open in your browser at: http://localhost:5000")
+            print("📊 Dashboard will open in your browser at: http://localhost:8080")
             print("🔄 Press Ctrl+C in the web UI terminal to stop")
             
             # Launch web UI in a subprocess

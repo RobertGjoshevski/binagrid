@@ -1,0 +1,33 @@
+{
+  "simulation_name": "demo_simulation",
+  "start_date": "2025-07-27T17:32:47",
+  "end_date": "2025-07-27T20:32:47",
+  "initial_balance": 10000.0,
+  "current_balance": 5085.0,
+  "total_return": -49.15,
+  "performance_metrics": {
+    "total_trades": 4,
+    "winning_trades": 1,
+    "losing_trades": 1,
+    "win_rate": 0.5,
+    "total_pnl": 23.461538461538513,
+    "total_volume": 12925.0,
+    "avg_trade_size": 3231.25,
+    "max_drawdown": 0.2640642939150346,
+    "sharpe_ratio": 0.0,
+    "profit_factor": 1.8840579710144965,
+    "total_commission": 12.93
+  },
+  "current_positions": {
+    "BTCUSDT": {
+      "symbol": "BTCUSDT",
+      "quantity": 0.1,
+      "avg_price": 49384.61538461538,
+      "total_cost": 4938.461538461539,
+      "current_value": 0.0,
+      "unrealized_pnl": 0.0,
+      "realized_pnl": 23.461538461538513,
+      "last_updated": 1753641167
+    }
+  }
+}

@@ -1,0 +1,5 @@
+id,timestamp,datetime,symbol,side,quantity,price,total_value,strategy,reason,order_id,commission,realized_pnl,unrealized_pnl
+1d2e02e2-0b83-44b0-8609-1b38fa368969,1753630367,2025-07-27 17:32:47,BTCUSDT,BUY,0.1,50000.0,5000.0,GRID,Grid buy order,order_001,5.0,0.0,0.0
+7021ca41-64f4-4669-bf9d-3413e881080f,1753633967,2025-07-27 18:32:47,BTCUSDT,SELL,0.05,51000.0,2550.0,GRID,Grid sell order,order_002,2.55,50.0,0.0
+5449c449-6d6c-4dc0-b0ed-75b6aa76d02e,1753637567,2025-07-27 19:32:47,BTCUSDT,BUY,0.08,49000.0,3920.0,DCA,DCA dip buying,order_003,3.92,0.0,0.0
+01fb294d-cd7d-42bb-8a2c-a92e8ea7b45e,1753641167,2025-07-27 20:32:47,BTCUSDT,SELL,0.03,48500.0,1455.0,GRID,Grid sell order,order_004,1.46,-26.538461538461487,0.0

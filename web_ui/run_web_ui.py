@@ -80,13 +80,13 @@ def start_web_server():
         os.chdir(web_ui_dir)
         
         print("🌐 Starting Binagrid Web UI...")
-        print("📊 Dashboard will be available at: http://localhost:5000")
+        print("📊 Dashboard will be available at: http://localhost:8080")
         print("🔄 Press Ctrl+C to stop the server")
         print("-" * 50)
         
         # Start the Flask app
         from app import app, socketio
-        socketio.run(app, host='0.0.0.0', port=5000, debug=False)
+        socketio.run(app, host='0.0.0.0', port=8080, debug=False)
         
     except KeyboardInterrupt:
         print("\n👋 Web UI stopped")
@@ -126,7 +126,7 @@ def main():
     def open_browser():
         time.sleep(2)
         try:
-            webbrowser.open('http://localhost:5000')
+            webbrowser.open('http://localhost:8080')
         except:
             pass
     

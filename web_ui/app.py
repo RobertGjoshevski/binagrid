@@ -31,7 +31,10 @@ class WebSimulationManager:
     
     def __init__(self, simulation_name: str):
         self.simulation_name = simulation_name
+        # Fix path for simulation manager
+        os.chdir('../')  # Go to project root
         self.sim_manager = SimulationManager(simulation_name)
+        os.chdir('web_ui')  # Go back to web_ui directory
         self.is_running = False
         self.update_thread = None
         
@@ -108,7 +111,7 @@ class WebSimulationManager:
 def get_available_simulations():
     """Get list of available simulations."""
     simulations = []
-    sim_dir = "simulation_data"
+    sim_dir = "../simulation_data"  # Fix path to simulation data
     
     if os.path.exists(sim_dir):
         for file in os.listdir(sim_dir):
@@ -133,11 +136,17 @@ def dashboard(simulation_name):
 def get_simulation_data(simulation_name):
     """Get simulation data API endpoint."""
     try:
+        # Fix path for simulation manager
+        original_dir = os.getcwd()
+        os.chdir('../')  # Go to project root
+        
         sim_manager = SimulationManager(simulation_name)
         data = sim_manager.get_analysis_data()
         
         # Get trade history for charts
         trades_df = sim_manager.load_trades_data()
+        
+        os.chdir(original_dir)  # Go back to original directory
         
         if not trades_df.empty:
             # Prepare chart data
@@ -174,8 +183,14 @@ def get_simulation_data(simulation_name):
 def get_simulation_trades(simulation_name):
     """Get simulation trades API endpoint."""
     try:
+        # Fix path for simulation manager
+        original_dir = os.getcwd()
+        os.chdir('../')  # Go to project root
+        
         sim_manager = SimulationManager(simulation_name)
         trades_df = sim_manager.load_trades_data()
+        
+        os.chdir(original_dir)  # Go back to original directory
         
         if not trades_df.empty:
             trades = trades_df.tail(50).to_dict('records')  # Last 50 trades
@@ -199,8 +214,14 @@ def get_simulation_trades(simulation_name):
 def get_simulation_performance(simulation_name):
     """Get detailed performance metrics."""
     try:
+        # Fix path for simulation manager
+        original_dir = os.getcwd()
+        os.chdir('../')  # Go to project root
+        
         sim_manager = SimulationManager(simulation_name)
         trades_df = sim_manager.load_trades_data()
+        
+        os.chdir(original_dir)  # Go back to original directory
         
         if trades_df.empty:
             return jsonify({
@@ -243,8 +264,14 @@ def get_simulations_list():
     sim_info = []
     for sim_name in simulations:
         try:
+            # Fix path for simulation manager
+            original_dir = os.getcwd()
+            os.chdir('../')  # Go to project root
+            
             sim_manager = SimulationManager(sim_name)
             analysis = sim_manager.get_analysis_data()
+            
+            os.chdir(original_dir)  # Go back to original directory
             
             sim_info.append({
                 'name': sim_name,
@@ -326,9 +353,9 @@ def handle_join_simulation(data):
 
 if __name__ == '__main__':
     print("🌐 Starting Binagrid Web UI...")
-    print("📊 Dashboard will be available at: http://localhost:5000")
+    print("📊 Dashboard will be available at: http://localhost:8080")
     
     # Import pandas here to avoid circular imports
     import pandas as pd
     
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True) 
+    socketio.run(app, host='0.0.0.0', port=8080, debug=True) 

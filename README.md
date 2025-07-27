@@ -202,7 +202,7 @@ python3 web_ui/run_web_ui.py
 ```
 
 ### **Web UI Access:**
-- **URL**: http://localhost:5000
+- **URL**: http://localhost:8080
 - **Features**: Dashboard, Analytics, Trade History, Performance Metrics
 - **Real-time**: Live updates every 5 seconds
 
