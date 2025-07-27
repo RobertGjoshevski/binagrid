@@ -1,0 +1,141 @@
+# =============================================================================
+# MULTI-STRATEGY TRADING BOT CONFIGURATION
+# =============================================================================
+
+# =============================================================================
+# BINANCE API CONFIGURATION
+# =============================================================================
+# Get your API keys from: https://www.binance.com/en/my/settings/api-management
+BINANCE_API_KEY=your_api_key_here
+BINANCE_SECRET_KEY=your_secret_key_here
+BINANCE_TESTNET=True
+
+# =============================================================================
+# COMMON TRADING CONFIGURATION
+# =============================================================================
+TRADING_PAIR=BTCUSDT
+BASE_ORDER_SIZE=10.0
+
+# Risk Management (Common)
+STOP_LOSS_PERCENT=5.0
+TAKE_PROFIT_PERCENT=10.0
+MAX_DAILY_LOSS=100.0
+
+# Bot Behavior (Common)
+ENABLE_LOGGING=True
+LOG_LEVEL=INFO
+PAPER_TRADING=True
+
+# API Rate Limiting
+MAX_REQUESTS_PER_MINUTE=1200
+REQUEST_DELAY=0.1
+
+# Database and Storage
+ENABLE_DATABASE=False
+DATABASE_URL=sqlite:///trading_bot.db
+
+# Notifications
+ENABLE_NOTIFICATIONS=False
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+
+# =============================================================================
+# GRID TRADING BOT CONFIGURATION
+# =============================================================================
+# Grid Strategy Parameters
+GRID_LEVELS=10
+GRID_SPACING_PERCENT=1.0
+GRID_TYPE=ARITHMETIC
+
+# Order Management
+BASE_ORDER_SIZE=10.0
+REBALANCE_INTERVAL=300
+
+# Grid Behavior
+AUTO_REBALANCE=True
+DYNAMIC_GRID=False
+GRID_EXPANSION=False
+
+# Risk Management
+MAX_GRID_LEVELS=20
+MIN_GRID_SPACING=0.5
+MAX_GRID_SPACING=5.0
+
+# Grid Performance
+PROFIT_TAKING_ENABLED=True
+PROFIT_TAKING_PERCENT=2.0
+
+# =============================================================================
+# DCA (DOLLAR COST AVERAGING) BOT CONFIGURATION
+# =============================================================================
+# DCA Strategy Parameters
+DCA_INTERVAL=DAILY
+DCA_AMOUNT=50.0
+DCA_TIME=09:00
+
+# DCA Behavior
+DCA_ON_DIP=True
+DIP_THRESHOLD=5.0
+EXTRA_DCA_MULTIPLIER=1.5
+
+# Market Analysis
+USE_TECHNICAL_INDICATORS=True
+RSI_OVERSOLD=30
+RSI_OVERBOUGHT=70
+MA_PERIOD=20
+
+# Risk Management
+MAX_DCA_PER_DAY=3
+MAX_TOTAL_INVESTMENT=10000.0
+STOP_LOSS_PERCENT=20.0
+
+# DCA Scheduling
+ENABLE_SCHEDULING=True
+TIMEZONE=UTC
+
+# Advanced DCA
+VOLATILITY_ADJUSTMENT=True
+VOLATILITY_THRESHOLD=10.0
+
+# =============================================================================
+# SIGNAL TRADING BOT CONFIGURATION
+# =============================================================================
+# Signal Sources
+SIGNAL_SOURCES=TELEGRAM,API
+TELEGRAM_CHANNELS=
+API_ENDPOINTS=
+
+# Signal Processing
+SIGNAL_CONFIRMATION=2
+SIGNAL_TIMEOUT=300
+MIN_SIGNAL_STRENGTH=0.7
+
+# Trading Parameters
+POSITION_SIZE_PERCENT=10.0
+MAX_POSITIONS=5
+LEVERAGE=1.0
+
+# Risk Management
+STOP_LOSS_PERCENT=5.0
+TAKE_PROFIT_PERCENT=10.0
+TRAILING_STOP=True
+TRAILING_STOP_PERCENT=2.0
+
+# Signal Types
+SUPPORTED_SIGNALS=BUY,SELL,LONG,SHORT
+BUY_KEYWORDS=buy,long,bullish,accumulate
+SELL_KEYWORDS=sell,short,bearish,exit
+STOP_KEYWORDS=stop,close,exit,cut
+
+# Technical Analysis
+USE_TECHNICAL_CONFIRMATION=True
+REQUIRED_INDICATORS=RSI,MACD
+
+# Market Conditions
+MARKET_FILTER=True
+MIN_VOLUME_24H=1000000
+MAX_SPREAD_PERCENT=1.0
+
+# Performance Tracking
+TRACK_PERFORMANCE=True
+PERFORMANCE_METRICS=WIN_RATE,PROFIT_FACTOR,SHARPE_RATIO 
