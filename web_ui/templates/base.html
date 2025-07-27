@@ -248,6 +248,13 @@
                 updateDashboard(data);
             }
         });
+        
+        socket.on('live_data_update', function(data) {
+            console.log('Live data update:', data);
+            if (typeof updateLiveData === 'function') {
+                updateLiveData(data);
+            }
+        });
     </script>
     
     {% block extra_js %}{% endblock %}

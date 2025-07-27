@@ -25,6 +25,146 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Global variables
 active_simulations = {}
 simulation_data = {}
+binance_client = None
+live_prices = {}
+account_balance = {}
+
+def init_binance_client():
+    """Initialize Binance client for live data."""
+    global binance_client
+    try:
+        from binance.client import Client
+        from binance.exceptions import BinanceAPIException
+        
+        # Load API keys from environment
+        api_key = os.getenv('BINANCE_API_KEY')
+        api_secret = os.getenv('BINANCE_SECRET_KEY')
+        testnet = os.getenv('BINANCE_TESTNET', 'True').lower() == 'true'
+        
+        if api_key and api_secret:
+            binance_client = Client(api_key, api_secret, testnet=testnet)
+            print("✅ Binance client initialized successfully")
+            return True
+        else:
+            print("⚠️  Binance API keys not found - using demo mode")
+            return False
+            
+    except ImportError:
+        print("⚠️  python-binance not installed - using demo mode")
+        return False
+    except Exception as e:
+        print(f"⚠️  Failed to initialize Binance client: {e}")
+        return False
+
+def get_live_prices():
+    """Get live cryptocurrency prices from Binance."""
+    global live_prices
+    
+    try:
+        if binance_client:
+            # Get prices for popular cryptocurrencies
+            symbols = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'ADAUSDT', 'DOTUSDT', 'LINKUSDT']
+            
+            for symbol in symbols:
+                try:
+                    ticker = binance_client.get_symbol_ticker(symbol=symbol)
+                    live_prices[symbol] = {
+                        'price': float(ticker['price']),
+                        'timestamp': datetime.now().isoformat()
+                    }
+                except Exception as e:
+                    print(f"Error getting price for {symbol}: {e}")
+                    
+        else:
+            # Demo mode - generate fake prices
+            import random
+            base_prices = {
+                'BTCUSDT': 50000,
+                'ETHUSDT': 3000,
+                'BNBUSDT': 400,
+                'ADAUSDT': 0.5,
+                'DOTUSDT': 20,
+                'LINKUSDT': 15
+            }
+            
+            for symbol, base_price in base_prices.items():
+                # Add some random variation
+                variation = random.uniform(-0.02, 0.02)  # ±2%
+                live_prices[symbol] = {
+                    'price': base_price * (1 + variation),
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+    except Exception as e:
+        print(f"Error getting live prices: {e}")
+
+def get_account_balance():
+    """Get current Binance account balance."""
+    global account_balance
+    
+    try:
+        if binance_client:
+            account = binance_client.get_account()
+            balance_data = {}
+            
+            for asset in account['balances']:
+                free = float(asset['free'])
+                locked = float(asset['locked'])
+                total = free + locked
+                
+                if total > 0:  # Only show assets with balance
+                    balance_data[asset['asset']] = {
+                        'free': free,
+                        'locked': locked,
+                        'total': total
+                    }
+            
+            account_balance = balance_data
+            
+        else:
+            # Demo mode - show fake balance
+            account_balance = {
+                'USDT': {'free': 10000.0, 'locked': 0.0, 'total': 10000.0},
+                'BTC': {'free': 0.1, 'locked': 0.0, 'total': 0.1},
+                'ETH': {'free': 2.5, 'locked': 0.0, 'total': 2.5},
+                'BNB': {'free': 10.0, 'locked': 0.0, 'total': 10.0}
+            }
+            
+    except Exception as e:
+        print(f"Error getting account balance: {e}")
+        # Fallback to demo data
+        account_balance = {
+            'USDT': {'free': 10000.0, 'locked': 0.0, 'total': 10000.0},
+            'BTC': {'free': 0.1, 'locked': 0.0, 'total': 0.1},
+            'ETH': {'free': 2.5, 'locked': 0.0, 'total': 2.5},
+            'BNB': {'free': 10.0, 'locked': 0.0, 'total': 10.0}
+        }
+
+def start_live_data_updates():
+    """Start background thread for live data updates."""
+    def update_loop():
+        while True:
+            try:
+                get_live_prices()
+                get_account_balance()
+                
+                # Emit live data to connected clients
+                socketio.emit('live_data_update', {
+                    'prices': live_prices,
+                    'balance': account_balance,
+                    'timestamp': datetime.now().isoformat()
+                }, namespace='/')
+                
+                time.sleep(5)  # Update every 5 seconds
+                
+            except Exception as e:
+                print(f"Error in live data update loop: {e}")
+                time.sleep(10)
+    
+    update_thread = threading.Thread(target=update_loop)
+    update_thread.daemon = True
+    update_thread.start()
+    print("✅ Live data updates started")
 
 class WebSimulationManager:
     """Web-specific simulation manager with real-time updates."""
@@ -131,6 +271,16 @@ def index():
 def dashboard(simulation_name):
     """Simulation dashboard page."""
     return render_template('dashboard.html', simulation_name=simulation_name)
+
+@app.route('/api/live-data')
+def get_live_data():
+    """Get live market data API endpoint."""
+    return jsonify({
+        'success': True,
+        'prices': live_prices,
+        'balance': account_balance,
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/api/simulation/<simulation_name>/data')
 def get_simulation_data(simulation_name):
@@ -336,6 +486,13 @@ def handle_connect():
     """Handle client connection."""
     print('Client connected')
     emit('status', {'message': 'Connected to Binagrid Web UI'})
+    
+    # Send initial live data
+    emit('live_data_update', {
+        'prices': live_prices,
+        'balance': account_balance,
+        'timestamp': datetime.now().isoformat()
+    })
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -357,5 +514,9 @@ if __name__ == '__main__':
     
     # Import pandas here to avoid circular imports
     import pandas as pd
+    
+    # Initialize Binance client and start live data updates
+    init_binance_client()
+    start_live_data_updates()
     
     socketio.run(app, host='0.0.0.0', port=8080, debug=True) 

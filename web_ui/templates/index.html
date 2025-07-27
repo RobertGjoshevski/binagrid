@@ -14,6 +14,111 @@
     </div>
 </div>
 
+<!-- Live Market Data -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Live Market Data
+                    <small class="text-muted ms-2" id="last-update">Last update: -</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="live-prices">
+                    <div class="col-md-2 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">BTC/USDT</div>
+                            <div class="h5 mb-0" id="BTCUSDT-price">$0.00</div>
+                            <small class="text-muted">Bitcoin</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">ETH/USDT</div>
+                            <div class="h5 mb-0" id="ETHUSDT-price">$0.00</div>
+                            <small class="text-muted">Ethereum</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">BNB/USDT</div>
+                            <div class="h5 mb-0" id="BNBUSDT-price">$0.00</div>
+                            <small class="text-muted">Binance Coin</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">ADA/USDT</div>
+                            <div class="h5 mb-0" id="ADAUSDT-price">$0.00</div>
+                            <small class="text-muted">Cardano</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">DOT/USDT</div>
+                            <div class="h5 mb-0" id="DOTUSDT-price">$0.00</div>
+                            <small class="text-muted">Polkadot</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">LINK/USDT</div>
+                            <div class="h5 mb-0" id="LINKUSDT-price">$0.00</div>
+                            <small class="text-muted">Chainlink</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Balance -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-wallet me-2"></i>Binance Account Balance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="account-balance">
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">USDT</div>
+                            <div class="h5 mb-0" id="USDT-balance">$0.00</div>
+                            <small class="text-muted">Available: $0.00</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">BTC</div>
+                            <div class="h5 mb-0" id="BTC-balance">0.00000000</div>
+                            <small class="text-muted">Available: 0.00000000</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">ETH</div>
+                            <div class="h5 mb-0" id="ETH-balance">0.00000000</div>
+                            <small class="text-muted">Available: 0.00000000</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center">
+                            <div class="fw-bold">BNB</div>
+                            <div class="h5 mb-0" id="BNB-balance">0.00000000</div>
+                            <small class="text-muted">Available: 0.00000000</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Overview Cards -->
 <div class="row mb-4">
     <div class="col-md-3">
@@ -288,6 +393,59 @@ function showInfo(message) {
     setTimeout(() => {
         alert.remove();
     }, 3000);
+}
+
+// Live data updates
+function updateLiveData(data) {
+    // Update cryptocurrency prices
+    if (data.prices) {
+        Object.keys(data.prices).forEach(symbol => {
+            const priceElement = document.getElementById(`${symbol}-price`);
+            if (priceElement) {
+                const price = data.prices[symbol].price;
+                priceElement.textContent = `$${price.toFixed(2)}`;
+                
+                // Add price change animation
+                priceElement.style.transition = 'color 0.3s ease';
+                priceElement.style.color = '#27ae60';
+                setTimeout(() => {
+                    priceElement.style.color = '';
+                }, 300);
+            }
+        });
+    }
+    
+    // Update account balance
+    if (data.balance) {
+        Object.keys(data.balance).forEach(asset => {
+            const balanceElement = document.getElementById(`${asset}-balance`);
+            if (balanceElement) {
+                const balance = data.balance[asset];
+                if (asset === 'USDT') {
+                    balanceElement.textContent = `$${balance.total.toFixed(2)}`;
+                    const availableElement = balanceElement.nextElementSibling;
+                    if (availableElement) {
+                        availableElement.textContent = `Available: $${balance.free.toFixed(2)}`;
+                    }
+                } else {
+                    balanceElement.textContent = balance.total.toFixed(8);
+                    const availableElement = balanceElement.nextElementSibling;
+                    if (availableElement) {
+                        availableElement.textContent = `Available: ${balance.free.toFixed(8)}`;
+                    }
+                }
+            }
+        });
+    }
+    
+    // Update last update timestamp
+    if (data.timestamp) {
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            const updateTime = new Date(data.timestamp).toLocaleTimeString();
+            lastUpdateElement.textContent = `Last update: ${updateTime}`;
+        }
+    }
 }
 
 // Real-time updates

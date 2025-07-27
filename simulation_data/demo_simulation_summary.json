@@ -1,7 +1,7 @@
 {
   "simulation_name": "demo_simulation",
-  "start_date": "2025-07-27T17:32:47",
-  "end_date": "2025-07-27T20:32:47",
+  "start_date": "2025-07-27T17:39:16",
+  "end_date": "2025-07-27T20:39:16",
   "initial_balance": 10000.0,
   "current_balance": 5085.0,
   "total_return": -49.15,
@@ -27,7 +27,7 @@
       "current_value": 0.0,
       "unrealized_pnl": 0.0,
       "realized_pnl": 23.461538461538513,
-      "last_updated": 1753641167
+      "last_updated": 1753641556
     }
   }
 }

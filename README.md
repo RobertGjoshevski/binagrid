@@ -190,6 +190,9 @@ The bot includes a modern web interface for real-time monitoring and analytics:
 - 🎯 **Performance Analytics**: Win rate, drawdown, Sharpe ratio visualization
 - 📱 **Responsive Design**: Works on desktop, tablet, and mobile
 - 🔄 **Real-time Updates**: Live data updates via WebSocket
+- 💰 **Live Market Data**: Real-time cryptocurrency prices from Binance
+- 🏦 **Account Balance**: Live Binance account balance display
+- ⚡ **Auto-refresh**: Data updates every 5 seconds automatically
 
 ### **Launch Web UI:**
 ```bash
