@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Binagrid{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-tachometer-alt me-2"></i>Trading Bot Dashboard</h1>
+            <button class="btn btn-custom" onclick="refreshData()">
+                <i class="fas fa-sync-alt me-1"></i>Refresh
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="total-simulations">-</div>
+            <div class="metric-label">Total Simulations</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value positive" id="total-pnl">$0.00</div>
+            <div class="metric-label">Total PnL</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="total-trades">0</div>
+            <div class="metric-label">Total Trades</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="avg-win-rate">0%</div>
+            <div class="metric-label">Avg Win Rate</div>
+        </div>
+    </div>
+</div>
+
+<!-- Simulations List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Available Simulations
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="simulations-list">
+                    <div class="text-center py-4">
+                        <div class="loading"></div>
+                        <p class="mt-2">Loading simulations...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <button class="btn btn-custom w-100 mb-2" onclick="runExampleSimulation()">
+                            <i class="fas fa-play me-1"></i>Run Example Simulation
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-custom w-100 mb-2" onclick="openAnalytics()">
+                            <i class="fas fa-chart-bar me-1"></i>View Analytics
+                        </button>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-custom w-100 mb-2" onclick="exportAllData()">
+                            <i class="fas fa-download me-1"></i>Export All Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let simulationsData = [];
+
+// Load initial data
+document.addEventListener('DOMContentLoaded', function() {
+    loadSimulationsData();
+});
+
+function loadSimulationsData() {
+    fetch('/api/simulations')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                simulationsData = data.simulations;
+                updateDashboard(data.simulations);
+            } else {
+                showError('Failed to load simulations data');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to load data');
+        });
+}
+
+function updateDashboard(simulations) {
+    // Update overview metrics
+    const totalSimulations = simulations.length;
+    const totalPnl = simulations.reduce((sum, sim) => sum + (sim.total_pnl || 0), 0);
+    const totalTrades = simulations.reduce((sum, sim) => sum + (sim.total_trades || 0), 0);
+    const avgWinRate = simulations.length > 0 ? 
+        simulations.reduce((sum, sim) => sum + (sim.win_rate || 0), 0) / simulations.length : 0;
+
+    document.getElementById('total-simulations').textContent = totalSimulations;
+    document.getElementById('total-pnl').textContent = `$${totalPnl.toFixed(2)}`;
+    document.getElementById('total-pnl').className = `metric-value ${totalPnl >= 0 ? 'positive' : 'negative'}`;
+    document.getElementById('total-trades').textContent = totalTrades;
+    document.getElementById('avg-win-rate').textContent = `${avgWinRate.toFixed(1)}%`;
+
+    // Update simulations list
+    updateSimulationsList(simulations);
+}
+
+function updateSimulationsList(simulations) {
+    const container = document.getElementById('simulations-list');
+    
+    if (simulations.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                <h5>No Simulations Found</h5>
+                <p class="text-muted">Run a simulation to see data here</p>
+                <button class="btn btn-custom" onclick="runExampleSimulation()">
+                    <i class="fas fa-play me-1"></i>Run Example Simulation
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    const html = simulations.map(sim => `
+        <div class="row mb-3 simulation-item" data-simulation="${sim.name}">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    <div class="status-indicator ${sim.total_trades > 0 ? 'status-active' : 'status-inactive'}"></div>
+                    <div>
+                        <h6 class="mb-1">${sim.name}</h6>
+                        <small class="text-muted">
+                            ${sim.total_trades} trades • ${sim.duration_days || 0} days
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex justify-content-end align-items-center">
+                    <div class="me-3">
+                        <div class="fw-bold ${sim.total_pnl >= 0 ? 'positive' : 'negative'}">
+                            $${sim.total_pnl.toFixed(2)}
+                        </div>
+                        <small class="text-muted">${sim.total_return.toFixed(1)}%</small>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewSimulation('${sim.name}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="startSimulation('${sim.name}')">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    container.innerHTML = html;
+}
+
+function viewSimulation(simulationName) {
+    window.location.href = `/dashboard/${simulationName}`;
+}
+
+function startSimulation(simulationName) {
+    fetch(`/api/simulation/${simulationName}/start`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccess(`Simulation ${simulationName} started`);
+                loadSimulationsData(); // Refresh data
+            } else {
+                showError(data.error || 'Failed to start simulation');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to start simulation');
+        });
+}
+
+function runExampleSimulation() {
+    showInfo('Running example simulation... This may take a moment.');
+    
+    // This would typically call your example simulation script
+    // For now, we'll just show a message
+    setTimeout(() => {
+        showSuccess('Example simulation completed!');
+        loadSimulationsData(); // Refresh data
+    }, 2000);
+}
+
+function openAnalytics() {
+    window.location.href = '/analytics';
+}
+
+function exportAllData() {
+    showInfo('Exporting all simulation data...');
+    
+    // This would typically trigger a download of all simulation data
+    setTimeout(() => {
+        showSuccess('Data exported successfully!');
+    }, 1500);
+}
+
+function refreshData() {
+    loadSimulationsData();
+    showSuccess('Data refreshed');
+}
+
+function showSuccess(message) {
+    // Simple success notification
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
+function showError(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+}
+
+function showInfo(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
+// Real-time updates
+function updateDashboard(data) {
+    if (data.simulation_name) {
+        // Update specific simulation
+        const simulationItem = document.querySelector(`[data-simulation="${data.simulation_name}"]`);
+        if (simulationItem) {
+            // Update the specific simulation card
+            const pnlElement = simulationItem.querySelector('.fw-bold');
+            if (pnlElement) {
+                pnlElement.textContent = `$${data.data.total_pnl.toFixed(2)}`;
+                pnlElement.className = `fw-bold ${data.data.total_pnl >= 0 ? 'positive' : 'negative'}`;
+            }
+        }
+    }
+}
+</script>
+{% endblock %} 

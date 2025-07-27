@@ -235,6 +235,37 @@ def analyze_simulation_results():
         print(f"❌ Analysis error: {e}")
         return False
 
+def launch_web_ui():
+    """Launch the web UI."""
+    print("🌐 Launching Web UI...")
+    
+    try:
+        import subprocess
+        import sys
+        from pathlib import Path
+        
+        # Path to web UI launcher
+        web_ui_launcher = Path(__file__).parent / "web_ui" / "run_web_ui.py"
+        
+        if web_ui_launcher.exists():
+            print("✅ Starting web interface...")
+            print("📊 Dashboard will open in your browser at: http://localhost:5000")
+            print("🔄 Press Ctrl+C in the web UI terminal to stop")
+            
+            # Launch web UI in a subprocess
+            subprocess.run([sys.executable, str(web_ui_launcher)])
+            
+        else:
+            print("❌ Web UI launcher not found")
+            print("💡 Make sure web_ui/run_web_ui.py exists")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Failed to launch web UI: {e}")
+        return False
+    
+    return True
+
 def interactive_mode():
     """Run in interactive mode."""
     print_banner()
@@ -249,7 +280,8 @@ def interactive_mode():
         print("3. Signal Trading Bot")
         print("4. Run in Simulation Mode")
         print("5. Analyze Simulation Results")
-        print("6. Exit")
+        print("6. Launch Web UI")
+        print("7. Exit")
         
         try:
             choice = input("\nEnter your choice (1-6): ").strip()
@@ -265,10 +297,12 @@ def interactive_mode():
             elif choice == '5':
                 return analyze_simulation_results()
             elif choice == '6':
+                return launch_web_ui()
+            elif choice == '7':
                 print("👋 Goodbye!")
                 return True
             else:
-                print("❌ Invalid choice. Please enter 1-6.")
+                print("❌ Invalid choice. Please enter 1-7.")
                 
         except KeyboardInterrupt:
             print("\n👋 Goodbye!")

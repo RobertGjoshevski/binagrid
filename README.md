@@ -179,6 +179,33 @@ python3 main.py --analyze my_test
 - 📊 **Visualization**: Charts and graphs for analysis
 - 🔄 **Backtesting**: Historical data simulation
 
+## 🌐 Web Interface
+
+The bot includes a modern web interface for real-time monitoring and analytics:
+
+### **Web UI Features:**
+- 📊 **Real-time Dashboard**: Live monitoring of all simulations
+- 📈 **Interactive Charts**: PnL over time, performance metrics, hourly analysis
+- 📋 **Trade History**: Detailed view of all trades with filtering
+- 🎯 **Performance Analytics**: Win rate, drawdown, Sharpe ratio visualization
+- 📱 **Responsive Design**: Works on desktop, tablet, and mobile
+- 🔄 **Real-time Updates**: Live data updates via WebSocket
+
+### **Launch Web UI:**
+```bash
+# From main menu
+python3 main.py
+# Select option 6: "Launch Web UI"
+
+# Or directly
+python3 web_ui/run_web_ui.py
+```
+
+### **Web UI Access:**
+- **URL**: http://localhost:5000
+- **Features**: Dashboard, Analytics, Trade History, Performance Metrics
+- **Real-time**: Live updates every 5 seconds
+
 ### Direct Strategy Execution
 ```bash
 # Grid Bot

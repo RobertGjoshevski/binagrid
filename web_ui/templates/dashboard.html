@@ -1,0 +1,520 @@
+{% extends "base.html" %}
+
+{% block title %}{{ simulation_name }} - Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1><i class="fas fa-chart-line me-2"></i>{{ simulation_name }}</h1>
+                <p class="text-muted mb-0">Simulation Dashboard</p>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-custom" onclick="refreshData()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+                <button class="btn btn-outline-primary" onclick="exportData()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="current-balance">$0.00</div>
+            <div class="metric-label">Current Balance</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="total-return">0%</div>
+            <div class="metric-label">Total Return</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="total-trades">0</div>
+            <div class="metric-label">Total Trades</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <div class="metric-value" id="win-rate">0%</div>
+            <div class="metric-label">Win Rate</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-area me-2"></i>Cumulative PnL Over Time
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="pnlChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Performance Metrics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Metrics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Performance Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <small class="text-muted">Total PnL</small>
+                            <div class="fw-bold" id="total-pnl">$0.00</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Max Drawdown</small>
+                            <div class="fw-bold" id="max-drawdown">0%</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Sharpe Ratio</small>
+                            <div class="fw-bold" id="sharpe-ratio">0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-3">
+                            <small class="text-muted">Profit Factor</small>
+                            <div class="fw-bold" id="profit-factor">0.00</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Total Volume</small>
+                            <div class="fw-bold" id="total-volume">$0.00</div>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted">Commission Paid</small>
+                            <div class="fw-bold" id="total-commission">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>Time Analysis
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Trades -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-exchange-alt me-2"></i>Recent Trades
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Symbol</th>
+                                <th>Side</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Value</th>
+                                <th>PnL</th>
+                                <th>Strategy</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trades-table">
+                            <tr>
+                                <td colspan="8" class="text-center">
+                                    <div class="loading"></div>
+                                    <p class="mt-2">Loading trades...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let pnlChart, metricsChart, hourlyChart;
+let simulationName = '{{ simulation_name }}';
+
+// Load initial data
+document.addEventListener('DOMContentLoaded', function() {
+    loadSimulationData();
+    loadTradesData();
+    loadPerformanceData();
+});
+
+function loadSimulationData() {
+    fetch(`/api/simulation/${simulationName}/data`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateMetrics(data.data);
+                updatePnLChart(data.chart_data);
+            } else {
+                showError('Failed to load simulation data');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to load data');
+        });
+}
+
+function loadTradesData() {
+    fetch(`/api/simulation/${simulationName}/trades`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateTradesTable(data.trades);
+            } else {
+                showError('Failed to load trades data');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to load trades');
+        });
+}
+
+function loadPerformanceData() {
+    fetch(`/api/simulation/${simulationName}/performance`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateHourlyChart(data.hourly_performance);
+                updateMetricsChart(data);
+            } else {
+                showError('Failed to load performance data');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError('Failed to load performance data');
+        });
+}
+
+function updateMetrics(data) {
+    const analysis = data.analysis;
+    const metrics = analysis.performance_metrics;
+    
+    document.getElementById('current-balance').textContent = `$${data.current_balance.toFixed(2)}`;
+    document.getElementById('total-return').textContent = `${data.total_return_percent.toFixed(2)}%`;
+    document.getElementById('total-return').className = `metric-value ${data.total_return_percent >= 0 ? 'positive' : 'negative'}`;
+    document.getElementById('total-trades').textContent = data.total_trades;
+    document.getElementById('win-rate').textContent = `${data.win_rate.toFixed(1)}%`;
+    
+    // Detailed metrics
+    document.getElementById('total-pnl').textContent = `$${metrics.total_pnl.toFixed(2)}`;
+    document.getElementById('total-pnl').className = `fw-bold ${metrics.total_pnl >= 0 ? 'positive' : 'negative'}`;
+    document.getElementById('max-drawdown').textContent = `${metrics.max_drawdown.toFixed(2)}%`;
+    document.getElementById('sharpe-ratio').textContent = metrics.sharpe_ratio.toFixed(2);
+    document.getElementById('profit-factor').textContent = metrics.profit_factor.toFixed(2);
+    document.getElementById('total-volume').textContent = `$${metrics.total_volume.toFixed(2)}`;
+    document.getElementById('total-commission').textContent = `$${metrics.total_commission.toFixed(2)}`;
+}
+
+function updatePnLChart(chartData) {
+    const ctx = document.getElementById('pnlChart').getContext('2d');
+    
+    if (pnlChart) {
+        pnlChart.destroy();
+    }
+    
+    pnlChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.timestamps,
+            datasets: [{
+                label: 'Cumulative PnL',
+                data: chartData.cumulative_pnl,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#ecf0f1'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#ecf0f1'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#ecf0f1'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateMetricsChart(data) {
+    const ctx = document.getElementById('metricsChart').getContext('2d');
+    
+    if (metricsChart) {
+        metricsChart.destroy();
+    }
+    
+    const metrics = data.data.analysis.performance_metrics;
+    const winningTrades = metrics.winning_trades;
+    const losingTrades = metrics.losing_trades;
+    
+    metricsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Winning Trades', 'Losing Trades'],
+            datasets: [{
+                data: [winningTrades, losingTrades],
+                backgroundColor: ['#27ae60', '#e74c3c'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#ecf0f1'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateHourlyChart(hourlyData) {
+    const ctx = document.getElementById('hourlyChart').getContext('2d');
+    
+    if (hourlyChart) {
+        hourlyChart.destroy();
+    }
+    
+    const hours = Array.from({length: 24}, (_, i) => i);
+    const data = hours.map(hour => hourlyData[hour] || 0);
+    
+    hourlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: hours.map(h => `${h}:00`),
+            datasets: [{
+                label: 'Hourly PnL',
+                data: data,
+                backgroundColor: data.map(value => value >= 0 ? '#27ae60' : '#e74c3c'),
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#ecf0f1',
+                        maxTicksLimit: 12
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#ecf0f1'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function updateTradesTable(trades) {
+    const tbody = document.getElementById('trades-table');
+    
+    if (trades.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center text-muted">
+                    No trades found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    const html = trades.map(trade => `
+        <tr>
+            <td>${trade.datetime}</td>
+            <td><span class="badge bg-secondary">${trade.symbol}</span></td>
+            <td>
+                <span class="badge ${trade.side === 'BUY' ? 'bg-success' : 'bg-danger'}">
+                    ${trade.side}
+                </span>
+            </td>
+            <td>${trade.quantity}</td>
+            <td>$${parseFloat(trade.price).toFixed(2)}</td>
+            <td>$${parseFloat(trade.total_value).toFixed(2)}</td>
+            <td class="${trade.realized_pnl >= 0 ? 'positive' : 'negative'}">
+                $${parseFloat(trade.realized_pnl).toFixed(2)}
+            </td>
+            <td><span class="badge bg-info">${trade.strategy}</span></td>
+        </tr>
+    `).join('');
+    
+    tbody.innerHTML = html;
+}
+
+function refreshData() {
+    loadSimulationData();
+    loadTradesData();
+    loadPerformanceData();
+    showSuccess('Data refreshed');
+}
+
+function exportData() {
+    showInfo('Exporting simulation data...');
+    
+    // Create download link for CSV
+    const link = document.createElement('a');
+    link.href = `/api/simulation/${simulationName}/export`;
+    link.download = `${simulationName}_data.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showSuccess('Data exported successfully!');
+}
+
+function showSuccess(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
+function showError(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+}
+
+function showInfo(message) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-info alert-dismissible fade show position-fixed';
+    alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
+}
+
+// Real-time updates
+function updateDashboard(data) {
+    if (data.simulation_name === simulationName) {
+        updateMetrics(data.data);
+        // Update charts if new data is available
+        if (data.data.recent_trades && data.data.recent_trades.length > 0) {
+            loadTradesData();
+        }
+    }
+}
+</script>
+{% endblock %} 
