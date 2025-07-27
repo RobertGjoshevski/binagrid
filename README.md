@@ -143,6 +143,42 @@ python3 main.py --strategy signal
 python3 main.py --validate
 ```
 
+## 🎮 Simulation Mode
+
+The bot includes a comprehensive simulation system for testing strategies without real money:
+
+### **Quick Simulation Test:**
+```bash
+# Run example simulation
+python3 example_simulation.py
+
+# Analyze results
+python3 analysis_tool.py --simulation demo_simulation --action summary
+```
+
+### **Interactive Simulation:**
+```bash
+python3 main.py
+# Select option 4: "Run in Simulation Mode"
+```
+
+### **Command Line Simulation:**
+```bash
+# Run simulation with specific name
+python3 main.py --simulation my_test
+
+# Analyze specific simulation
+python3 main.py --analyze my_test
+```
+
+### **Simulation Features:**
+- 📊 **Paper Trading**: No real money involved
+- 💾 **Data Storage**: SQLite database for all trades
+- 📈 **Performance Metrics**: Win rate, PnL, drawdown, Sharpe ratio
+- 📄 **Export Options**: CSV and JSON reports
+- 📊 **Visualization**: Charts and graphs for analysis
+- 🔄 **Backtesting**: Historical data simulation
+
 ### Direct Strategy Execution
 ```bash
 # Grid Bot
